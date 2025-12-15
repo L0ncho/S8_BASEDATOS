@@ -1,0 +1,133 @@
+NOTAS PARA EL VIDEO 
+
+
+
+Hola, quetal soy Alonso Basualdo y en esta oportunidad, realizare la explicación
+del Examen final transversal lo mas claro posible, me cree un paso a paso para ir explicando el video.
+Partiremos por el usuario Admin:
+
+Para los desarrolladores y consultores, se crearon roles (explica el rol D y el ROL c), ya que si en algún momento es necesario contratar mas personal en estos puestos
+se les asigne el rol y no permisos unitarios, así facilitamos la administración masiva y estandariza la seguridad.
+
+-Dentro de las estrategias de usuario, para la seguridad implemente una estrategia de tres capas
+
+	Dueño (que seria el usuario EFT), el cual es el único con control total sobre los objetos
+
+	Desarrollador (que seria el EFT_DES), El cual contiene permisos limitados para crear lógica, pero con
+		cuotas de espacio reducidas
+
+	Consultor, usuario EFT_CON, el ultimo usuario con privilegios minimos, específicamente solo de lectura
+
+Dentro de los privilegio y roles, se aplico el principio de menor privilegio, asignando privilegios individuales solo al Owner
+ya que el un administrador único,
+
+
+
+==================================================================================================================================
+
+CAMBIA DE USUARIOO A EFT (OWNER)
+PRIMERO UN SHOW USER PARA DEMOSTRAR EL USUARIO
+
+EN ESTA ETAPA SE REALIZARON TAREAS CRITICAS
+-LA PRIMERA ES EJECUTAR EL SCRIPT DE POBLAMIENTO ENTREGADO
+
+- se crearon los sinonimos publicos para ocultar el esquema del dueño. Asi los usuarios acceden a CLIENTE y no a PRY2205_EFT.CLIENTE, 
+abstrayendo la capa fisica de datos.
+
+
+-LA SEGUNDA ES OTORGAR LOS PERMISOS Y CREAR LOS SINONIMOS NECESARIOS, 
+ESTO ES NECSARIO PARA QUE EL DESARROLLADOR PUEDA TRABAJAR SOBRE LAS TABLAS SIN ACCEDES DIRECTAMENTE
+AL ESQUEMA FISICO, AÑANDIENDO UNA CAPA EXTRA DE SEGURIDAD
+
+==================================================================================================================================
+==================================================================================================================================
+
+CAMBIA A USUARIO DESARROLLADOR 
+PRIMERO UN SHOW USER PARA DEMOSTRAR EL USUARIO
+
+PARA EL CASO 2, INFORME DE REMUNERACIONES
+apliqué 4 criterios técnicos clave:
+
+Integración de Datos: Utilicé INNER JOINS para vincular la tabla transaccional de Profesionales con sus tablas maestras (Isapre, Profesión y Tipo de Contrato), recuperando las descripciones necesarias.
+
+Formato y Limpieza: Apliqué funciones de cadena como INITCAP y concatenación para estandarizar el nombre completo del empleado, corrigiendo el formato de origen.
+
+Lógica de Negocio Condicional (CASE): Para el 'Bono de Movilización', no usé un valor fijo. Implementé una estructura CASE que evalúa dinámicamente el nombre del contrato. Por ejemplo, si es 'Indefinido Completo' asigna 150 mil, pero si es 'Honorarios' asigna 50 mil, cumpliendo estrictamente la regla de negocio.
+
+Cálculos Avanzados y Manejo de Nulos:
+
+  * Utilicé la función `NVL` en las comisiones para evitar errores matemáticos con valores nulos.
+  * Y lo más importante: para calcular el porcentaje de honorarios, realicé un **Non-Equi Join** (cruce por rango) usando `BETWEEN` contra la tabla `RANGOS_SUELDOS`, lo que permite clasificar el sueldo en su tramo correspondiente automáticamente.
+
+Procedo a ejecutar la carga..."
+
+(Esperas que salga el mensaje de "X filas insertadas")
+
+"La carga fue exitosa. Finalmente, otorgo los permisos de lectura al Rol de Consultores para que puedan validar este informe."
+
+==================================================================================================================================
+==================================================================================================================================
+CAMBIA DE NUEVO A USER EFT (OWNER)
+REGRESANDO AL OWNER PARA IMPLEMENTAR EL CASO 3
+
+SHOW USER
+
+SOBRE LA VISTA VW_EMPRESAs_ASESORADAS
+LA LOGICA FUE DIVIDIR EL CONTEO TOTAL DE ASESORIAS POR 12 PARA OBTENER EL PROMEDIO MENSUAL, 
+USE ESTE PROMEDIO PARA DETERMINAR LA CATEGORIA COMO PREMIUM CLIENTE ETC Y CALCULAR LOS MONTOS DE IVA
+ASEGURANDO QUE LOS VALORES COINCIDAN CON EL REQUERIMIENTO
+Acción (Optimización):
+
+Ejecuta el SELECT de la vista y presiona F10 (Plan de Ejecución).
+
+Muestra que dice "FULL TABLE SCAN".
+
+--Al revisar el plan de ejecución inicial, vemos un costo elevado por un escaneo completo de tabla.
+
+
+Para solucionarlo, creé un Índice Basado en Función sobre el campo FIN (extrayendo el año), que es el filtro principal. 
+Crea el Índice.
+
+Al generar el plan nuevamente, vemos que ahora utiliza el índice (RANGE SCAN), optimizando el rendimiento."
+
+Presiona F10 de nuevo.
+
+
+Ademas, cree un índice estandas sobre la columna idempresa. Como mi vista realiza un JOIN entre empresa y asesoría usando este campo
+este índice acelera drásticamente el cruce de datos, evitando los recorridos secuenciales innecesarios
+
+==================================================================================================================================
+==================================================================================================================================
+BLOQUE 5: USER CONSULTOR
+SHOW USER
+
+
+Ejecuto las consultas sobre los informes generados.
+ Como se observa, tengo acceso a la información gracias a los sinónimos públicos y roles de lectura asignados, pero no tengo privilegios para alterar la estructura, cumpliendo así con los requisitos de seguridad
+
+UN EJEMPLO DE LA LOGICA DE LOS PRIVILEGIOS, SERIA POR EJEMPLO TRATAR DE MODIFICAR O ELIMINAR ALGO
+INTENTAREMOS ELIMINAR UN REGISTRO
+
+DELETE FROM VW_EMPRESAS_ASESORADAS WHERE ROWNUM = 1;
+
+"MUESTRAS EL ERROR DE PRIVILEGIOS"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
